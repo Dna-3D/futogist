@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUTO Gist - School Blog</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>FUTO Gist</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="blog">Blog</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="ads">Ads</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="tickets">Tickets</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-section="vote">Vote</a>
+                </li>
+                <li class="nav-item">
+                    <a href="admin.html" class="nav-link admin-link">Admin</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1>Welcome to FUTO Gist</h1>
+                    <p>Your premier source for campus news, events, and updates</p>
+                </div>
+            </div>
+
+            <!-- First Carousel -->
+            <div class="carousel-section">
+                <h2>Featured Businesses</h2>
+                <div class="carousel-container">
+                    <div class="carousel" id="carousel1">
+                        <div class="carousel-track" id="carousel1-track">
+                            <!-- Carousel items will be loaded dynamically -->
+                        </div>
+                        <button class="carousel-btn prev" id="carousel1-prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-btn next" id="carousel1-next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Carousel -->
+            <div class="carousel-section">
+                <h2>Partner Businesses</h2>
+                <div class="carousel-container">
+                    <div class="carousel" id="carousel2">
+                        <div class="carousel-track" id="carousel2-track">
+                            <!-- Carousel items will be loaded dynamically -->
+                        </div>
+                        <button class="carousel-btn prev" id="carousel2-prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="carousel-btn next" id="carousel2-next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Latest Blog Posts Preview -->
+            <div class="latest-posts">
+                <h2>Latest Posts</h2>
+                <div class="posts-grid" id="latest-posts-grid">
+                    <!-- Latest posts will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Blog Section -->
+        <section id="blog" class="section">
+            <div class="section-header">
+                <h1>Blog Posts</h1>
+                <p>Stay updated with the latest campus news and stories</p>
+            </div>
+            <div class="blog-grid" id="blog-grid">
+                <!-- Blog posts will be loaded dynamically -->
+            </div>
+            <div class="loading" id="blog-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading posts...</p>
+            </div>
+        </section>
+
+        <!-- Ads Section -->
+        <section id="ads" class="section">
+            <div class="section-header">
+                <h1>Advertisements</h1>
+                <p>Discover local businesses and services</p>
+            </div>
+            <div class="ads-grid" id="ads-grid">
+                <!-- Ads will be loaded dynamically -->
+            </div>
+            <div class="loading" id="ads-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading advertisements...</p>
+            </div>
+        </section>
+
+        <!-- Tickets Section -->
+        <section id="tickets" class="section">
+            <div class="section-header">
+                <h1>Event Tickets</h1>
+                <p>Get tickets for upcoming events</p>
+            </div>
+            <div class="tickets-grid" id="tickets-grid">
+                <!-- Tickets will be loaded dynamically -->
+            </div>
+            <div class="loading" id="tickets-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading tickets...</p>
+            </div>
+        </section>
+
+        <!-- Vote Section -->
+        <section id="vote" class="section">
+            <div class="section-header">
+                <h1>Vote</h1>
+                <p>Participate in campus polls and surveys</p>
+            </div>
+            <div class="votes-container" id="votes-container">
+                <!-- Voting polls will be loaded dynamically -->
+            </div>
+            <div class="loading" id="vote-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading polls...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>FUTO Gist</h3>
+                <p>Your trusted source for campus news and updates</p>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>Email: futogistmedia@gmail.com</p>
+                <p>WhatsApp: 08081610560</p>
+            </div>
+            <div class="footer-section">
+                <h3>Follow Us</h3>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 FUTO Gist. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Configuration -->
+    <script src="config.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
