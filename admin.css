@@ -583,8 +583,30 @@ tr:hover {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+/* Admin Header */
+.admin-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 900;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    height: 80px; /* Added height property */
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    margin-top: 80px; /* Ensure this matches the header height */
+    padding: 2rem;
+    min-height: calc(100vh - 80px);
+}
+
+/* Responsive Design Adjustments */
 @media (max-width: 768px) {
-  .main-content {
-    margin-top: 120px; /* Adjust this value to match header height on mobile */
-  }
+    .main-content {
+        margin-top: 120px; /* Adjusted for mobile header height */
+    }
 }
