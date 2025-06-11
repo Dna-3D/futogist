@@ -583,3 +583,8 @@ tr:hover {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+@media (max-width: 768px) {
+  .main-content {
+    margin-top: 120px; /* Adjust this value to match header height on mobile */
+  }
+}
