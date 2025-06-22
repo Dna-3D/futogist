@@ -46,6 +46,7 @@ function initializeAdmin() {
     setupLoginForm();
     setupNavigation();
     setupDashboard();
+    setupHamburgerMenu();
     
     // Check if already logged in
     const isLoggedIn = sessionStorage.getItem('admin_logged_in');
@@ -733,4 +734,12 @@ window.showAddForm = showAddForm;
 window.editItem = editItem;
 window.deleteItem = deleteItem;
 window.togglePollResults = togglePollResults;
+function setupHamburgerMenu() {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const sidebar = document.querySelector('.sidebar');
+
+    hamburgerBtn?.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
 window.closeModal = closeModal;
