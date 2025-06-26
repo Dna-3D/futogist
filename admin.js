@@ -12,6 +12,12 @@ import {
     query,
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -26,6 +32,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // Admin credentials
 const ADMIN_EMAIL = 'futogistmedia@gmail.com';
@@ -161,6 +168,42 @@ function showSection(sectionName) {
 function setupDashboard() {
     const itemForm = document.getElementById('item-form');
     itemForm?.addEventListener('submit', handleFormSubmit);
+    
+    // Setup file upload preview
+    setupFileUploadPreview();
+}
+
+// Setup file upload preview
+function setupFileUploadPreview() {
+    document.addEventListener('change', function(e) {
+        if (e.target.type === 'file' && e.target.accept.includes('image')) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.createElement('div');
+                    previewContainer.className = 'file-preview active';
+                    previewContainer.innerHTML = `
+                        <p><strong>Selected image:</strong></p>
+                        <img src="${e.target.result}" alt="Preview">
+                        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                            File: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                    `;
+                    
+                    // Remove existing preview
+                    const existingPreview = e.target.parentNode.querySelector('.file-preview');
+                    if (existingPreview) {
+                        existingPreview.remove();
+                    }
+                    
+                    // Add new preview
+                    e.target.parentNode.appendChild(previewContainer);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
 }
 
 // Load dashboard statistics
@@ -335,26 +378,42 @@ async function loadTickets() {
 // Load polls
 async function loadPolls() {
     const tbody = document.getElementById('polls-tbody');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('Polls table body not found');
+        return;
+    }
     
     showLoading();
     
     try {
+        console.log('Loading polls from Firebase...');
+        
+        // Check if the polls collection exists and has documents
         const pollsQuery = query(collection(db, 'polls'), orderBy('created_at', 'desc'));
         const querySnapshot = await getDocs(pollsQuery);
         
+        console.log(`Found ${querySnapshot.size} polls`);
+        
         const polls = [];
         querySnapshot.forEach((doc) => {
-            polls.push({ id: doc.id, ...doc.data() });
+            const pollData = doc.data();
+            console.log('Poll data:', pollData);
+            polls.push({ id: doc.id, ...pollData });
         });
         
+        if (polls.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666; padding: 2rem;">No polls found. Create your first poll!</td></tr>';
+        } else {
         tbody.innerHTML = polls.map(poll => {
             const totalVotes = poll.options ? poll.options.reduce((sum, option) => sum + (option.votes || 0), 0) : 0;
+                const status = poll.show_results ? 'Closed' : 'Active';
+                const statusClass = poll.show_results ? 'text-danger' : 'text-success';
+                
             return `
                 <tr>
-                    <td>${poll.question}</td>
+                        <td>${poll.question || 'No question'}</td>
                     <td>${totalVotes}</td>
-                    <td>${poll.show_results ? 'Closed' : 'Active'}</td>
+                        <td><span class="${statusClass}">${status}</span></td>
                     <td>${formatDate(poll.created_at)}</td>
                     <td>
                         <button class="btn btn-sm btn-secondary" onclick="editItem('polls', '${poll.id}')">Edit</button>
@@ -366,10 +425,37 @@ async function loadPolls() {
                 </tr>
             `;
         }).join('');
+        }
         
     } catch (error) {
         console.error('Error loading polls:', error);
-        tbody.innerHTML = '<tr><td colspan="5">Error loading polls</td></tr>';
+        
+        // Provide more specific error messages
+        let errorMessage = 'Error loading polls';
+        
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Please check your Firebase security rules.';
+        } else if (error.code === 'unavailable') {
+            errorMessage = 'Firebase service is currently unavailable. Please try again later.';
+        } else if (error.code === 'not-found') {
+            errorMessage = 'Polls collection not found. This is normal for new installations.';
+        } else if (error.message) {
+            errorMessage = `Error: ${error.message}`;
+        }
+        
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align: center; color: #dc3545; padding: 2rem;">
+                    <div style="margin-bottom: 1rem;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    </div>
+                    <div>${errorMessage}</div>
+                    <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                        <button class="btn btn-primary" onclick="loadPolls()">Retry</button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }
     
     hideLoading();
@@ -440,8 +526,15 @@ function generateFormFields(type, data = {}) {
             <textarea id="description" name="description">${data.description || ''}</textarea>
         </div>
         <div class="form-group">
-            <label for="image_url">Image URL</label>
-            <input type="url" id="image_url" name="image_url" value="${data.image_url || ''}">
+            <label for="image_file">Image</label>
+            <input type="file" id="image_file" name="image_file" accept="image/*" class="file-input">
+            ${data.image_url ? `
+                <div class="current-image">
+                    <p>Current image:</p>
+                    <img src="${data.image_url}" alt="Current image" style="max-width: 200px; max-height: 150px; border-radius: 8px; margin-top: 0.5rem;">
+                    <input type="hidden" name="current_image_url" value="${data.image_url}">
+                </div>
+            ` : ''}
         </div>
     `;
     
@@ -526,7 +619,7 @@ function generateFormFields(type, data = {}) {
                                value="${option.text || ''}" required 
                                placeholder="Option ${index + 1}" style="flex: 1;">
                         ${index >= 2 ? `<button type="button" class="btn btn-sm btn-danger" onclick="removePollOption(${index})" style="min-width: 40px;">×</button>` : ''}
-                    </div>
+                </div>
                 </div>
             `).join('');
             
@@ -540,9 +633,9 @@ function generateFormFields(type, data = {}) {
                     <textarea id="description" name="description">${data.description || ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>Poll Options *</label>
+                    <label>Poll Options * (Minimum 2)</label>
                     <div id="poll-options">
-                        ${optionsHtml}
+                ${optionsHtml}
                     </div>
                     <button type="button" class="btn btn-outline" onclick="addPollOption()" style="margin-top: 0.5rem;">
                         <i class="fas fa-plus"></i> Add Option
@@ -613,6 +706,34 @@ async function handleFormSubmit(e) {
     const formData = new FormData(e.target);
     const data = {};
     
+    // Handle file upload first
+    const imageFile = formData.get('image_file');
+    if (imageFile && imageFile.size > 0) {
+        try {
+            console.log('Uploading image file...');
+            const timestamp = Date.now();
+            const fileName = `${currentEditType}_${timestamp}_${imageFile.name}`;
+            const storageRef = ref(storage, `images/${currentEditType}/${fileName}`);
+            
+            const snapshot = await uploadBytes(storageRef, imageFile);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            
+            data.image_url = downloadURL;
+            console.log('Image uploaded successfully:', downloadURL);
+        } catch (uploadError) {
+            console.error('Error uploading image:', uploadError);
+            alert('Error uploading image. Please try again.');
+            hideLoading();
+            return;
+        }
+    } else {
+        // Keep existing image URL if no new file is uploaded
+        const currentImageUrl = formData.get('current_image_url');
+        if (currentImageUrl) {
+            data.image_url = currentImageUrl;
+        }
+    }
+    
     // Convert form data to object
     for (let [key, value] of formData.entries()) {
         if (key.startsWith('option')) {
@@ -627,9 +748,34 @@ async function handleFormSubmit(e) {
             data[key] = value === 'true';
         } else if (key === 'date' && value) {
             data[key] = new Date(value);
-        } else {
+        } else if (key !== 'image_file' && key !== 'current_image_url') {
+            // Skip file input and current image URL as they're handled above
             data[key] = value || null;
         }
+    }
+    
+    // Special validation for polls
+    if (currentEditType === 'polls') {
+        // Filter out empty options
+        if (data.options) {
+            data.options = data.options.filter(option => option.text && option.text.trim() !== '');
+        }
+        
+        // Ensure minimum 2 options
+        if (!data.options || data.options.length < 2) {
+            alert('Polls must have at least 2 options.');
+            hideLoading();
+            return;
+        }
+        
+        // Ensure question is provided
+        if (!data.question || data.question.trim() === '') {
+            alert('Poll question is required.');
+            hideLoading();
+            return;
+        }
+        
+        console.log('Poll data to save:', data);
     }
     
     // Add timestamp
@@ -640,6 +786,7 @@ async function handleFormSubmit(e) {
     
     try {
         const collectionName = getCollectionName(currentEditType);
+        console.log('Saving to collection:', collectionName);
         
         if (currentEditId) {
             // Update existing item
@@ -648,7 +795,8 @@ async function handleFormSubmit(e) {
             alert('Item updated successfully!');
         } else {
             // Add new item
-            await addDoc(collection(db, collectionName), data);
+            const docRef = await addDoc(collection(db, collectionName), data);
+            console.log('Document written with ID: ', docRef.id);
             alert('Item added successfully!');
         }
         
@@ -657,7 +805,19 @@ async function handleFormSubmit(e) {
         
     } catch (error) {
         console.error('Error saving item:', error);
-        alert('Error saving item. Please try again.');
+        
+        // Provide more specific error messages
+        let errorMessage = 'Error saving item. Please try again.';
+        
+        if (error.code === 'permission-denied') {
+            errorMessage = 'Permission denied. Please check your Firebase security rules.';
+        } else if (error.code === 'unavailable') {
+            errorMessage = 'Firebase service is currently unavailable. Please try again later.';
+        } else if (error.message) {
+            errorMessage = `Error: ${error.message}`;
+        }
+        
+        alert(errorMessage);
     }
     
     hideLoading();
